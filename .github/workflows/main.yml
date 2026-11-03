@@ -116,5 +116,6 @@ jobs:
         with:
           tag_name: neo-mod-${{ env.ctime }}-${{ env.shorthash }}
           name: Dopamine neo-mod ${{ env.ctime }}
-          prerelease: true
+          prerelease: false
+          make_latest: true
           files: ${{ github.workspace }}/Application/Dopamine.ipa
