@@ -233,7 +233,7 @@
             PSSpecifier *autoJailbreakSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Auto Jailbreak" target:self set:defSetter get:defGetter detail:nil cell:PSSwitchCell edit:nil];
             [autoJailbreakSpecifier setProperty:@YES forKey:@"enabled"];
             [autoJailbreakSpecifier setProperty:@"autoJailbreakEnabled" forKey:@"key"];
-            [autoJailbreakSpecifier setProperty:@NO forKey:@"default"];
+            [autoJailbreakSpecifier setProperty:@YES forKey:@"default"];
             [specifiers addObject:autoJailbreakSpecifier];
 
             PSSpecifier *exitWhenJailbrokenSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Exit When Jailbroken" target:self set:defSetter get:defGetter detail:nil cell:PSSwitchCell edit:nil];

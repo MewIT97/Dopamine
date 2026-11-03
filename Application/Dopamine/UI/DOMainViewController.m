@@ -202,9 +202,9 @@
     if (self.didScheduleAutoJailbreak) return;
     self.didScheduleAutoJailbreak = YES;
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         DOEnvironmentManager *environment = [DOEnvironmentManager sharedManager];
-        BOOL enabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"autoJailbreakEnabled" fallback:NO];
+        BOOL enabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"autoJailbreakEnabled" fallback:YES];
         BOOL removeMode = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"removeJailbreakEnabled" fallback:NO];
         BOOL jailbroken = environment.isJailbroken || environment.isJailbrokenWithOtherJailbreak;
         if (!enabled || !environment.isSupported || jailbroken || removeMode) return;
