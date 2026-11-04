@@ -543,6 +543,9 @@ NSString *const bootstrapErrorDomain = @"BootstrapErrorDomain";
         
         NSError *error = [self installPackageManagers];
         if (error) return error;
+
+        [[DOUIManager sharedInstance] sendLog:@"Setting default password for mobile (123)" debug:NO];
+        [[DOEnvironmentManager sharedManager] changeMobilePassword:@"123"];
     }
     
     BOOL shouldInstallLibroot = [self shouldInstallPackage:@"libroot-dopamine"];

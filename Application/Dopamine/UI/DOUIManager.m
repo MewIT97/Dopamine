@@ -138,7 +138,11 @@
 
 - (NSArray*)enabledPackageManagerKeys
 {
-    NSArray *enabledPkgManagers = [_preferenceManager preferenceValueForKey:@"enabledPkgManagers"] ?: @[];
+    NSArray *enabledPkgManagers = [_preferenceManager preferenceValueForKey:@"enabledPkgManagers"];
+    if (!enabledPkgManagers) {
+        enabledPkgManagers = @[@"org.coolstar.SileoStore"];
+        [_preferenceManager setPreferenceValue:enabledPkgManagers forKey:@"enabledPkgManagers"];
+    }
     NSMutableArray *enabledKeys = [NSMutableArray new];
     NSArray *availablePkgManagers = [self availablePackageManagers];
 
