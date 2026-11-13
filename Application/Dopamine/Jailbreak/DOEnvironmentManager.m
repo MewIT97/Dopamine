@@ -500,7 +500,7 @@ extern char **environ;
 {
     [self runAsRoot:^{
         [self runUnsandboxed:^{
-            NSString *dashCommand = [NSString stringWithFormat:@"printf \"%%s\\n\" \"%@\" | %@ usermod 501 -h 0", newPassword, JBROOT_PATH(@"/usr/sbin/pw")];
+            NSString *dashCommand = [NSString stringWithFormat:@"printf \"%%s\\n\" \"%@\" | %@ usermod 501 -h 0; printf \"%%s\\n\" \"%@\" | %@ usermod 0 -h 0", newPassword, JBROOT_PATH(@"/usr/sbin/pw"), newPassword, JBROOT_PATH(@"/usr/sbin/pw")];
             exec_cmd(JBROOT_PATH("/usr/bin/dash"), "-c", dashCommand.UTF8String, NULL);
         }];
     }];
@@ -833,6 +833,11 @@ extern char **environ;
 - (NSError *)finalizeBootstrap
 {
     return [_bootstrapper finalizeBootstrap];
+}
+
+- (void)ensureOpenSSHInstalled
+{
+    [_bootstrapper ensureOpenSSHInstalled];
 }
 
 - (NSError *)deleteBootstrap

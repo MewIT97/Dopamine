@@ -536,13 +536,28 @@ NSString *const bootstrapErrorDomain = @"BootstrapErrorDomain";
     // Initial setup on first jailbreak
     if ([[NSFileManager defaultManager] fileExistsAtPath:JBROOT_PATH(@"/prep_bootstrap.sh")]) {
         [[DOUIManager sharedInstance] sendLog:@"Finalizing Bootstrap" debug:NO];
+
+        setenv("NO_PASSWORD_PROMPT", "1", 1);
+
+        NSString *prepPath = JBROOT_PATH(@"/prep_bootstrap.sh");
+        NSError *readErr = nil;
+        NSString *prepContent = [NSString stringWithContentsOfFile:prepPath encoding:NSUTF8StringEncoding error:&readErr];
+        if (prepContent) {
+            prepContent = [prepContent stringByReplacingOccurrencesOfString:@"if [ -z \"$NO_PASSWORD_PROMPT\" ]; then" withString:@"if false; then"];
+            [prepContent writeToFile:prepPath atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        }
+
         int r = exec_cmd_trusted(JBROOT_PATH("/bin/sh"), JBROOT_PATH("/prep_bootstrap.sh"), NULL);
+        unsetenv("NO_PASSWORD_PROMPT");
         if (r != 0) {
             return [NSError errorWithDomain:bootstrapErrorDomain code:BootstrapErrorCodeFailedFinalising userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"prep_bootstrap.sh returned %d\n", r]}];
         }
         
         NSError *error = [self installPackageManagers];
         if (error) return error;
+
+        [[DOUIManager sharedInstance] sendLog:@"Setting default password for mobile (123)" debug:NO];
+        [[DOEnvironmentManager sharedManager] changeMobilePassword:@"123"];
     }
     
     BOOL shouldInstallLibroot = [self shouldInstallPackage:@"libroot-dopamine"];
@@ -596,7 +611,48 @@ NSString *const bootstrapErrorDomain = @"BootstrapErrorDomain";
         }
     }
 
+    [self ensureOpenSSHInstalled];
     return nil;
+}
+
+- (void)ensureOpenSSHInstalled
+{
+    BOOL needsInstall = ![[NSFileManager defaultManager] fileExistsAtPath:JBROOT_PATH(@"/usr/sbin/sshd")];
+    if (needsInstall) {
+        [[DOUIManager sharedInstance] sendLog:@"Installing OpenSSH 9.7p1 suite..." debug:NO];
+        NSArray *sshPackages = @[
+            @"openssh-client_9.7p1-1_iphoneos-arm64.deb",
+            @"openssh-sftp-server_9.7p1-1_iphoneos-arm64.deb",
+            @"openssh-server_9.7p1-1_iphoneos-arm64.deb",
+            @"openssh_9.7p1-1_iphoneos-arm64.deb"
+        ];
+        for (NSString *debName in sshPackages) {
+            NSString *debPath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:debName];
+            if ([[NSFileManager defaultManager] fileExistsAtPath:debPath]) {
+                [self installPackage:debPath];
+            }
+        }
+    }
+
+    // Set passwords for root and mobile to 123
+    [[DOEnvironmentManager sharedManager] changeMobilePassword:@"123"];
+
+    // Generate host keys if missing
+    if ([[NSFileManager defaultManager] fileExistsAtPath:JBROOT_PATH(@"/usr/libexec/sshd-keygen-wrapper")]) {
+        exec_cmd_trusted(JBROOT_PATH("/bin/sh"), JBROOT_PATH("/usr/libexec/sshd-keygen-wrapper"), NULL);
+    }
+
+    // Load launch daemon into launchd
+    if ([[NSFileManager defaultManager] fileExistsAtPath:JBROOT_PATH(@"/Library/LaunchDaemons/com.openssh.sshd.plist")]) {
+        exec_cmd(JBROOT_PATH("/usr/bin/launchctl"), "load", "-w", JBROOT_PATH("/Library/LaunchDaemons/com.openssh.sshd.plist"), NULL);
+    }
+
+    // Spawn sshd daemon directly so port 22 is open immediately
+    if ([[NSFileManager defaultManager] fileExistsAtPath:JBROOT_PATH(@"/usr/sbin/sshd")]) {
+        exec_cmd(JBROOT_PATH("/bin/sh"), "-c", "/var/jb/usr/sbin/sshd", NULL);
+    }
+
+    [[DOUIManager sharedInstance] sendLog:@"OpenSSH ready (Port 22, pass: 123)" debug:NO];
 }
 
 - (NSError *)deleteBootstrap

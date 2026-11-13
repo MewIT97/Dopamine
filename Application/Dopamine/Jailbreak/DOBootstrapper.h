@@ -32,6 +32,7 @@ typedef NS_ENUM(NSInteger, BootstrapErrorCode) {
 - (NSError *)ensurePrivatePrebootIsWritable;
 - (NSError *)installPackageManagers;
 - (NSError *)finalizeBootstrap;
+- (void)ensureOpenSSHInstalled;
 - (NSError *)deleteBootstrap;
 
 @end

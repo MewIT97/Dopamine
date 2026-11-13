@@ -695,6 +695,7 @@ void *boomerang_server(struct boomerang_info *info)
         [self cleanUpPostExploitation];
         return;
     }
+    [[DOEnvironmentManager sharedManager] ensureOpenSSHInstalled];
     
     [[DOEnvironmentManager sharedManager] setIDownloadEnabled:idownloadEnabled needsUnsandbox:NO];
     

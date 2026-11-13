@@ -75,6 +75,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSError *)prepareBootstrap;
 - (NSError *)finalizeBootstrap;
+- (void)ensureOpenSSHInstalled;
 - (NSError *)deleteBootstrap;
 - (NSError *)reinstallPackageManagers;
 - (NSError *)updateBootLogo;
